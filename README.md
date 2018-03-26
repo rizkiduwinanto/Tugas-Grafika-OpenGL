@@ -1,6 +1,6 @@
 # Tugas-Grafika-OpenGL
 
-## Tugas Grafika PyOpenGL
+## Tugas Grafika OpenGL with C++
 
 ### Muhammad Rizki Duwinanto - 13515006
 ### Edwin Rachman - 13515042
