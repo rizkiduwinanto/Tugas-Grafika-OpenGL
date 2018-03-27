@@ -32,33 +32,13 @@ void resizeGLScene(int width, int height){
   glMatrixMode(GL_MODELVIEW);
 }
 
-void drawWheel(float x, float y) {
-  int timeElapsed = glutGet(GLUT_ELAPSED_TIME);
-  float revolveScale1 = 0.2f;
-  glPushMatrix();
-  glColor3f(0.0, 0.0, 1.0);
-  glTranslatef(x, y, 0.0f);
-  glRotatef(timeElapsed * revolveScale1,0.0,0.0,1.0);
-  glutSolidSphere(0.75, 20, 20);
-  glColor3f(1.0, 1.0, 1.0);
-  for(int i=0; i<5; ++i) {
-    glPushMatrix();
-    glRotatef(72.0f*i,0.0,0.0,1.0);
-    glTranslatef(0.44f, 0.0, 0.0);
-    glutSolidSphere(0.1f, 16, 16);
-    glPopMatrix();
-  }
-  glTranslatef(0.0f, 0.0f, 0.0f);
-  glutSolidSphere(0.1, 16, 16);
-  glPopMatrix();
-  glFlush();
-  glutPostRedisplay();
+void drawWheel(void) {
 }
 
 void drawCar(){
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
-  glTranslatef(-5.0f, 0.0f, -15.0f);
+  glTranslatef(-5.0f, 0.0f, -20.0f);
   glBegin(GL_POLYGON);
   glColor3f(0.0f, 1.0f, 0.0f);
   glVertex3f(9.0f, 1.0f, 0.0f);
@@ -69,9 +49,9 @@ void drawCar(){
   glVertex3f(2.0f, 2.0f, 0.0f);
   glVertex3f(1.0f, 2.0f, 0.0f);
   glVertex3f(1.0f, 1.0f, 0.0f);
+  glColor3f(1.0f, 1.0f, 1.0f);
   glEnd();
-  drawWheel(3.0f, 1.0f);
-  drawWheel(6.5f, 1.0f);
+  drawWheel();
   glutSwapBuffers();
 }
 
