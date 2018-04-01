@@ -2,18 +2,46 @@
 #include <GL/glut.h>
 #include <iostream>
 #include <string>
+#include <math.h>
 
-std::string vertexShader = "#version 430\n"
+std::string vertexShader = "#version 120\n"
                            "in vec3 pos;"
                            "void main() {"
-                           "gl_Position = vec4(pos, 1);"
+                           "gl_Position = gl_ModelViewProjectionMatrix*vec4(pos, 1);"
                            "}";
 
-std::string fragmentShader = "#version 430\n"
+std::string fragmentShader = "#version 120\n"
                              "void main() {"
                              "gl_FragColor = vec4(0, 1, 0, 0);"
                              "}";
 
+std::string fragmentWheelShader = "#version 120\n"
+                              "uniform vec4 color;"
+														  "void main() {"
+															"gl_FragColor = color;"
+														  "}";
+
+GLfloat color[] = {
+      0, 1, 0, 1
+};
+
+GLfloat colorWheel[] = {
+      0, 0, 1, 1
+};
+
+void rotate(float* vertices, int numberVertices, float centerX, float centerY, float angle){
+	float angleSin = sin(angle);
+	float angleCos = cos(angle);
+
+	for (int i  = 0; i < numberVertices*3; i+=3){
+		vertices[i] -= centerX;
+		vertices[i+1] -= centerY;
+		float xnew = vertices[i] * angleCos - vertices[i+1] * angleSin;
+		float ynew = vertices[i] * angleSin + vertices[i+1] * angleCos;
+		vertices[i] = xnew + centerX;
+		vertices[i+1] = ynew + centerY;
+	}
+}
 
 GLuint compileShaders(std::string shader, GLenum type){
     const char* shaderCode = shader.c_str();
@@ -62,26 +90,48 @@ GLuint linkProgram(GLuint vertexShaderId, GLuint fragmentShaderId){
 }
 
 GLuint loadDataInBuffers(){
-    GLfloat vertices[] =
-		{
-			-0.3, -0.3, 0,
-			0.3, -0.3, 0,
-			0.3, 0.3, 0,
-			-0.3, 0.3, 0
-    };
-
-		GLuint elements[] =
-		{
-    	0, 1, 2,
-    	2, 3, 0
+		GLfloat vertices[] = {
+		 	0.4f, -0.4f, 0.0f,
+			-0.4f, -0.4f, 0.0f,
+		 	-0.4f, 0.4f, 0.0f,
+      0.4f, -0.4f, 0.0f,
+			0.1f, 0.4f, 0.0f,
+		 	-0.4f, 0.4f, 0.0f
 		};
+
+    GLfloat wheel[] = {
+      0.1f, -0.1f, 0.0f,
+      -0.1f, -0.1f, 0.0f,
+      -0.1f, 0.1f, 0.0f,
+      0.1f, -0.1f, 0.0f,
+      0.1f, 0.1f, 0.0f,
+      -0.1f, 0.1f, 0.0f,
+    };
 
     GLuint vboId;
     glGenBuffers(1, &vboId);
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    GLuint vboEd;
+    glGenBuffers(1, &vboEd);
+    glBindBuffer(GL_ARRAY_BUFFER, vboEd);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(wheel), wheel, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     return vboId;
+}
+
+void initGL(int width, int height){
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearDepth(1.0);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_SMOOTH);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0f, (GLfloat) width / (GLfloat) height, 0.1f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void init(){
@@ -90,7 +140,7 @@ void init(){
     GLuint vShaderId = compileShaders(vertexShader, GL_VERTEX_SHADER);
     GLuint fShaderId = compileShaders(fragmentShader, GL_FRAGMENT_SHADER);
     GLuint programId = linkProgram(vShaderId, fShaderId);
-    GLuint posAttributePosition = glGetAttribLocation(programId, "pos");
+    GLuint posAttributePosition = glGetAtribLocation(programId, "pos");
     GLuint vaoId;
     glGenVertexArrays(1, &vaoId);
     glBindVertexArray(vaoId);
@@ -98,11 +148,14 @@ void init(){
     glVertexAttribPointer(posAttributePosition, 3, GL_FLOAT, false, 0, 0);
     glEnableVertexAttribArray(posAttributePosition);
     glUseProgram(programId);
+    GLuint colorLoc;
+    colorLoc = glGetUniformLocation(programId, "color");
+    glUniform4fv(colorLoc, 1, color);
 }
 
 void display(){
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     glutSwapBuffers();
 }
 
