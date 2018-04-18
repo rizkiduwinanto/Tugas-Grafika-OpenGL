@@ -1,13 +1,9 @@
-
-# coding: utf-8
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import sys
 
-##############################################################################
-# OpenGL funcs
-##############################################################################
+
 def initialize():
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glClearDepth(1.0)
@@ -19,19 +15,16 @@ def resize(Width, Height):
     if Height == 0:
         Height = 1
     glViewport(0, 0, Width, Height)
-    # projection
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     gluPerspective(45.0, float(Width)/float(Height), 0.1, 100.0)
 
-yaw=0
-pitch=0
+yaw = 0
+pitch = 0
+
 def draw():
     global yaw, pitch
-    # clear
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-    # view
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
     yaw+=0.39
@@ -39,24 +32,13 @@ def draw():
     glTranslatef(0.0, 0.0, -2.0)
     glRotatef(yaw, 0, 1, 0)
     glRotatef(pitch, 1, 0, 0)
-
-    # cube
-    #draw_cube0()
-    #draw_cube1()
-    #draw_cube2()
-    draw_cube3()
-
+    draw_car()
     glFlush()
 
-##############################################################################
-# Shader
-##############################################################################
-# Checks for GL posted errors after appropriate calls
 def printOpenGLError():
     err = glGetError()
     if (err != GL_NO_ERROR):
         print('GLERROR: ', gluErrorString(err))
-        #sys.exit()
 
 class Shader(object):
 
@@ -75,14 +57,14 @@ class Shader(object):
         printOpenGLError()
 
         # fragment shader
-        print('Fragment Shader Compiling'')
+        print('Fragment Shader Compiling')
         self.fs = glCreateShader(GL_FRAGMENT_SHADER)
         glShaderSource(self.fs, [fragment_shader_source])
         glCompileShader(self.fs)
         glAttachShader(self.program, self.fs)
         printOpenGLError()
 
-        print('link...')
+        print('Link')
         glLinkProgram(self.program)
         printOpenGLError()
 
@@ -94,7 +76,7 @@ class Shader(object):
         glUseProgram(0)
 
 
-s=0.5
+s = 0.5
 vertices=[
         -s, -s, -s,
          s, -s, -s,
@@ -126,47 +108,24 @@ indices=[
         4, 7, 6, 6, 5, 4,
         ]
 
-def draw_cube0():
-    glBegin(GL_TRIANGLES)
-    for i in range(0, len(indices), 3):
-        index=indices[i]*3
-        glColor3f(*colors[index:index+3])
-        glVertex3f(*vertices[index:index+3])
 
-        index=indices[i+1]*3
-        glColor3f(*colors[index:index+3])
-        glVertex3f(*vertices[index:index+3])
+buffers = None
 
-        index=indices[i+2]*3
-        glColor3f(*colors[index:index+3])
-        glVertex3f(*vertices[index:index+3])
-    glEnd()
-
-def draw_cube1():
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, vertices);
-    glColorPointer(3, GL_FLOAT, 0, colors)
-    glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, indices);
-    glDisableClientState(GL_COLOR_ARRAY)
-    glDisableClientState(GL_VERTEX_ARRAY);
-
-buffers=None
 def create_vbo():
     buffers = glGenBuffers(3)
     glBindBuffer(GL_ARRAY_BUFFER, buffers[0])
     glBufferData(GL_ARRAY_BUFFER,
-            len(vertices)*4,  # byte size
+            len(vertices)*4,
             (ctypes.c_float*len(vertices))(*vertices),
             GL_STATIC_DRAW)
     glBindBuffer(GL_ARRAY_BUFFER, buffers[1])
     glBufferData(GL_ARRAY_BUFFER,
-            len(colors)*4, # byte size
+            len(colors)*4,
             (ctypes.c_float*len(colors))(*colors),
             GL_STATIC_DRAW)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2])
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            len(indices)*4, # byte size
+            len(indices)*4,
             (ctypes.c_uint*len(indices))(*indices),
             GL_STATIC_DRAW)
     return buffers
@@ -183,14 +142,8 @@ def draw_vbo():
     glDisableClientState(GL_COLOR_ARRAY)
     glDisableClientState(GL_VERTEX_ARRAY);
 
-def draw_cube2():
-    global buffers
-    if buffers==None:
-        buffers=create_vbo()
-    draw_vbo()
-
 shader=None
-def draw_cube3():
+def draw_car():
     global shader, buffers
     if shader==None:
         shader=Shader()
@@ -213,7 +166,6 @@ void main()
     draw_vbo()
     shader.end()
 
-##############################################################################
 def reshape_func(w, h):
     resize(w, h == 0 and 1 or h)
 
