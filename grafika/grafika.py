@@ -15,7 +15,7 @@ def main():
          # most obj files expect to be smooth-shaded
 
 	# LOAD OBJECT AFTER PYGAME INIT
-	obj = OBJ('LowPolyPickup.obj', swapyz=True)
+	obj = OBJ('Car.obj', swapyz=True)
 
 	clock = pygame.time.Clock()
 
@@ -28,7 +28,7 @@ def main():
 
 
 	rotate = move = False
-	lx, ly, lz = -40, 1000, 100
+	lx, ly, lz = 0, 50, 0
 	rx, ry, rz = 0, 0, 0
 	tx, ty, tz = 0, 0, 5
 	panx = pany = panz = rotx = roty = rotz = colr = colg = colb = movx = movy = movz = 0
@@ -150,6 +150,13 @@ def main():
 		glRotate(rz, 0, 0, 1)
 		# loadImage()
 		glCallList(obj.gl_list)
+		
+		glBegin(GL_QUADS)
+		glVertex3f(-4000.0,-100,10000.0)
+		glVertex3f(4000.0,-100,10000.0)
+		glVertex3f(4000.0,80,-10000.0)
+		glVertex3f(-4000.0,80,-10000.0);
+		glEnd()
 
 		pygame.display.flip()
 
