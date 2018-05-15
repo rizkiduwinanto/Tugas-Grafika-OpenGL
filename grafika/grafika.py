@@ -5,19 +5,19 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from objloader import *
 from rain import *
+from random import randint , choice
 
 def main():
 	pygame.init()
 	viewport = (800,600)
 	hx = viewport[0]/2
 	hy = viewport[1]/2
-	srf = pygame.display.set_mode(viewport)
+	srf = pygame.display.set_mode(viewport, OPENGL | DOUBLEBUF)
          # most obj files expect to be smooth-shaded
 
 	# LOAD OBJECT AFTER PYGAME INIT
 	obj = OBJ('Car.obj', swapyz=True)
 
-	#colors
 	gloomywhite = (220 , 220 , 220 )
 	white = (255 , 255 , 255)
 	un = (230, 230, 250)
@@ -38,15 +38,15 @@ def main():
 	widths = [i for i in range(1,5)]
 	heights = [i for i in range(15,40,4)]
 	gravities = [ i for i in range(2,20,4)]
-	size = list(zip(widths , heights, gravities))
+	size = list(zip(widths , heights,gravities))
 
 	for i in range(500):
-		x = randint(10,890)
+		x = randint(10, 890)
 		y = -1*randint(300 , 1500)
+		z = randint(300, 500)
 		width , height , g = choice(size)
-		raindrop = Drop(srf , rainblue, x, y, width , height, g)
+		raindrop = Drop(36, 113, 163, x, y, z, width, height, g)
 		drops.append(raindrop)
-
 
 	rotate = move = False
 	lx, ly, lz = 0, 50, 0
@@ -163,7 +163,6 @@ def main():
 		glEnable(GL_DEPTH_TEST)
 		glShadeModel(GL_SMOOTH)
 
-		srf.fill(un)
 
 		# RENDER OBJECT
 		glTranslate(tx, ty, -tz)
@@ -175,8 +174,6 @@ def main():
 
 		for d in drops:
 			d.fall()
-
-		clock.tick(70)
 
 		# glBegin(GL_QUADS)
 		# glVertex3f(-4000.0,-100,10000.0)

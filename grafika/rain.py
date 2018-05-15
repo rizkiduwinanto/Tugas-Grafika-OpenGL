@@ -1,13 +1,16 @@
 import pygame
+import random
+from OpenGL.GL import *
 from random import randint , choice
-import time
 
 class Drop:
-    def __init__(self,surface , color , x, y , width , height ,gravity):
-        self.surface = surface
-        self.color = color
+    def __init__(self, r, g, b, x, y, z, width, height, gravity):
+        self.r = r
+        self.g = g
+        self.b = b
         self.x = x
         self.y = y
+        self.z = z
         self.width = width
         self.height = height
         self.time = 0
@@ -19,4 +22,9 @@ class Drop:
             self.y = -1*randint(300,1500)
             self.time = 0.03
         self.time += 0.01
-        pygame.draw.rect(self.surface , self.color ,[ self.x , self.y , self.width , self.height ])
+        # pygame.draw.rect(self.surface , self.color ,[ self.x , self.y , self.z, self.width , self.height ])
+        glColor3f(self.r, self.g, self.b)
+        glBegin(GL_LINES)
+        glVertex3f(self.x, self.y, self.z)
+        glVertex3f(self.x, self.y+0.5, self.z)
+        glEnd()
