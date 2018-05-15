@@ -4,18 +4,26 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from objloader import *
+from rain import *
 
 def main():
 	pygame.init()
 	viewport = (800,600)
 	hx = viewport[0]/2
 	hy = viewport[1]/2
-	srf = pygame.display.set_mode(viewport, OPENGL | DOUBLEBUF)
-
+	srf = pygame.display.set_mode(viewport)
          # most obj files expect to be smooth-shaded
 
 	# LOAD OBJECT AFTER PYGAME INIT
 	obj = OBJ('Car.obj', swapyz=True)
+
+	#colors
+	gloomywhite = (220 , 220 , 220 )
+	white = (255 , 255 , 255)
+	un = (230, 230, 250)
+	purple = ( 138, 43, 226 )
+	blue = ( 0 , 0 , 230 )
+	rainblue = (36, 113, 163 )
 
 	clock = pygame.time.Clock()
 
@@ -25,6 +33,19 @@ def main():
 	gluPerspective(90.0, width/float(height), 1, 100.0)
 	glEnable(GL_DEPTH_TEST)
 	glMatrixMode(GL_MODELVIEW)
+
+	drops = []
+	widths = [i for i in range(1,5)]
+	heights = [i for i in range(15,40,4)]
+	gravities = [ i for i in range(2,20,4)]
+	size = list(zip(widths , heights, gravities))
+
+	for i in range(500):
+		x = randint(10,890)
+		y = -1*randint(300 , 1500)
+		width , height , g = choice(size)
+		raindrop = Drop(srf , rainblue, x, y, width , height, g)
+		drops.append(raindrop)
 
 
 	rotate = move = False
@@ -142,6 +163,7 @@ def main():
 		glEnable(GL_DEPTH_TEST)
 		glShadeModel(GL_SMOOTH)
 
+		srf.fill(un)
 
 		# RENDER OBJECT
 		glTranslate(tx, ty, -tz)
@@ -150,13 +172,18 @@ def main():
 		glRotate(rz, 0, 0, 1)
 		# loadImage()
 		glCallList(obj.gl_list)
-		
-		glBegin(GL_QUADS)
-		glVertex3f(-4000.0,-100,10000.0)
-		glVertex3f(4000.0,-100,10000.0)
-		glVertex3f(4000.0,80,-10000.0)
-		glVertex3f(-4000.0,80,-10000.0);
-		glEnd()
+
+		for d in drops:
+			d.fall()
+
+		clock.tick(70)
+
+		# glBegin(GL_QUADS)
+		# glVertex3f(-4000.0,-100,10000.0)
+		# glVertex3f(4000.0,-100,10000.0)
+		# glVertex3f(4000.0,80,-10000.0)
+		# glVertex3f(-4000.0,80,-10000.0);
+		# glEnd()
 
 		pygame.display.flip()
 
