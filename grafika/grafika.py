@@ -74,7 +74,7 @@ class SmokeParticleSystem:
 
       # for each particle
       for particle in self.particles:
-        # get coordinates of particle
+        # get coordin * (1 - particle.life)ates of particle
         x = particle.x
         y = particle.y
         z = particle.z
@@ -82,10 +82,10 @@ class SmokeParticleSystem:
         glPushAttrib(GL_CURRENT_BIT)
 
         # set colour of particle
-        glColor3f(particle.r, particle.g, particle.b)
+        glColor4f(particle.r, particle.g, particle.b, particle.life)
 
         # draw particle
-        VERTEX_POS = 0.012
+        VERTEX_POS = 0.025
 
         glBegin(GL_TRIANGLE_STRIP)
         glVertex3f(x+VERTEX_POS, y+VERTEX_POS, z)
@@ -111,7 +111,7 @@ class SmokeParticleSystem:
 class RainParticleSystem:
 
     # constants
-    NUMBER_OF_PARTICLES = 2000
+    NUMBER_OF_PARTICLES = 500
 
     # initialise
     def __init__(self, x, y, z, offset):
@@ -155,13 +155,13 @@ class RainParticleSystem:
         glPushAttrib(GL_CURRENT_BIT)
 
         # set colour of particle
-        glColor3f(particle.r, particle.g, particle.b)
+        glColor4f(particle.r, particle.g, particle.b, 0.5)
 
         # draw particle
 
         glBegin(GL_LINES)
+        glVertex3f(x, y - 0.08, z)
         glVertex3f(x, y, z)
-        glVertex3f(x, y+0.04, z)
         glEnd()
 
         # update particle with velocity
@@ -195,6 +195,8 @@ def main():
   hx = viewport[0]/2
   hy = viewport[1]/2
   srf = pygame.display.set_mode(viewport, OPENGL | DOUBLEBUF)
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  glEnable(GL_BLEND)
   glClearColor(0.196078, 0.6, 0.8, 1.0)
   glEnableClientState(GL_VERTEX_ARRAY)
 
@@ -214,7 +216,7 @@ def main():
   glLoadIdentity()
 
   smoke = SmokeParticleSystem(0.0, 0.5, 2.0)
-  rain = RainParticleSystem(0.0, 0.0, 5.0, 5.0)
+  rain = RainParticleSystem(0.0, 0.0, 0.0, 5.0)
 
   rotate = move = False
   lx, ly, lz = 0.0, 50.0, 0.0
@@ -223,6 +225,7 @@ def main():
   panx = pany = panz = rotx = roty = rotz = colr = colg = colb = movx = movy = movz = 0
   red = green = blue = 1.0
   posx = posy = posz = 0
+  smoke_active = rain_active = True
 
   x = 0.0
   xv = 0.0
@@ -238,7 +241,7 @@ def main():
   start = time.time()
 
   while 1:
-    clock.tick(30)
+    clock.tick(200)
 
     for e in pygame.event.get():
       if e.type == QUIT:
@@ -305,6 +308,10 @@ def main():
           zv = 0.4
         elif e.key == K_4:
           xv = 0.4
+        elif e.key == K_9:
+          rain_active = not rain_active
+        elif e.key == K_0:
+          smoke_active = not smoke_active
 
       elif e.type == KEYUP:
         panx = pany = panz = rotx = roty = rotz = colr = colg = colb = movx = movy = movz = xv = zv = 0
@@ -376,18 +383,6 @@ def main():
     x += xv
     z += zv
 
-    glPushMatrix()
-    glTranslate(x, y, z)
-
-    glPushMatrix()
-    glRotate(-90, 1, 0, 0)
-    glCallList(obj.gl_list)
-    glPopMatrix()
-    smoke.render()
-    glPopMatrix()
-
-    rain.render()
-
     glColor3f(0.0, 0.8, 0.0)
     glBegin(GL_QUADS)
     glVertex3f(-400.0,-10.0,400.0)
@@ -395,6 +390,23 @@ def main():
     glVertex3f(400.0,-10.0,-400.0)
     glVertex3f(-400.0,-10.0,-400.0);
     glEnd()
+
+    glPushMatrix()
+    glTranslate(x, y, z)
+
+    glPushMatrix()
+    glRotate(-90, 1, 0, 0)
+    glCallList(obj.gl_list)
+    glPopMatrix()
+    if smoke_active:
+        smoke.render()
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslate(x, 0, z)
+    if rain_active:
+        rain.render()
+    glPopMatrix()
 
     pygame.display.flip()
 

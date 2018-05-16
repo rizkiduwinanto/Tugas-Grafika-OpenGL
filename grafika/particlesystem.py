@@ -40,11 +40,17 @@ class ParticleSystem:
                 glColor3f(particle.red, particle.green, particle.blue)
                 VERTEX_POS = 0.02
                 glBegin(GL_TRIANGLE_STRIP)
+
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
                 glVertex3f(x+VERTEX_POS, y+VERTEX_POS, z)
                 glVertex3f(x-VERTEX_POS, y+VERTEX_POS, z)
                 glVertex3f(x+VERTEX_POS, y-VERTEX_POS, z)
                 glVertex3f(x-VERTEX_POS, y-VERTEX_POS, z)
+
                 glEnd()
+
                 particle.x += particle.xv
                 particle.y += particle.yv
                 particle.z += particle.zv
