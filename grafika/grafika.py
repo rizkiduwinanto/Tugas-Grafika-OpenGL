@@ -1,4 +1,4 @@
-import sys, pygame
+import sys, pygame, time
 from pygame.locals import *
 from pygame.constants import *
 from OpenGL.GL import *
@@ -8,40 +8,40 @@ from random import uniform
 from math import pi as PI
 
 class Particle:
- 
+
     # initialise
     def __init__(self):
- 
+
         # active settings
         self.is_active = False
         self.life = 0.0
         self.ageing = 0.0
- 
+
         # colour
         self.r = 0.0
         self.g = 0.0
         self.b = 0.0
- 
+
         # coordinates
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
- 
+
         # velocity
         self.xv = 0.0
         self.yv = 0.0
         self.zv = 0.0
-        
+
         # acceleration
         self.xa = 0.0
         self.ya = 0.0
         self.za = 0.0
 
 class SmokeParticleSystem:
- 
+
     # constants
     NUMBER_OF_PARTICLES = 500
- 
+
     # initialise
     def __init__(self, x, y, z):
         self.active = True
@@ -51,27 +51,27 @@ class SmokeParticleSystem:
         self.particles = [Particle() for i in range(self.NUMBER_OF_PARTICLES)]
         for particle in self.particles:
           self.reset_particle(particle)
-        
+
     def reset_particle(self, particle):
         particle.active = True
         particle.life = 1.0
         particle.ageing = uniform(0.01, 0.04)
-        
+
         color = uniform(0.0, 0.3)
         particle.r = color
         particle.g = color
         particle.b = color
-        
+
         particle.x = self.x
         particle.y = self.y + uniform(-0.05, 0.05)
         particle.z = self.z
 
-        particle.xv = uniform(-0.02, 0.02)  
+        particle.xv = uniform(-0.02, 0.02)
         particle.yv = uniform(-0.02, 0.02)
         particle.zv = uniform(0.20, 0.40)
- 
+
     def render(self):
- 
+
       # for each particle
       for particle in self.particles:
         # get coordinates of particle
@@ -83,7 +83,7 @@ class SmokeParticleSystem:
 
         # set colour of particle
         glColor3f(particle.r, particle.g, particle.b)
-         
+
         # draw particle
         VERTEX_POS = 0.012
 
@@ -92,7 +92,7 @@ class SmokeParticleSystem:
         glVertex3f(x-VERTEX_POS, y+VERTEX_POS, z)
         glVertex3f(x+VERTEX_POS, y-VERTEX_POS, z)
         glVertex3f(x-VERTEX_POS, y-VERTEX_POS, z)
-        glEnd() 
+        glEnd()
 
         # update particle with velocity
         particle.x += particle.xv
@@ -101,18 +101,18 @@ class SmokeParticleSystem:
 
         # update particle's life
         particle.life -= particle.ageing
-         
+
         if particle.life <= 0.0:
           self.reset_particle(particle)
 
         glPopAttrib()
-        
+
 
 class RainParticleSystem:
- 
+
     # constants
     NUMBER_OF_PARTICLES = 2000
- 
+
     # initialise
     def __init__(self, x, y, z, offset):
         self.x = x
@@ -122,15 +122,15 @@ class RainParticleSystem:
         self.particles = [Particle() for i in range(self.NUMBER_OF_PARTICLES)]
         for particle in self.particles:
           self.reset_particle(particle)
-        
+
     def reset_particle(self, particle):
         particle.life = 1.0
         particle.ageing = uniform(0.01, 0.04)
-      
+
         particle.r = 0
         particle.g = 0
         particle.b = uniform(0.2, 0.5)
-        
+
         particle.x = self.x + uniform(-self.offset, self.offset)
         particle.y = self.y + self.offset + uniform(-0.005, 0.005)
         particle.z = self.z + uniform(-self.offset, self.offset)
@@ -138,13 +138,13 @@ class RainParticleSystem:
         particle.xv = 0
         particle.yv = 0
         particle.zv = 0
- 
+
         particle.xa = 0
         particle.ya = -0.04
         particle.za = 0
- 
+
     def render(self):
- 
+
       # for each particle
       for particle in self.particles:
         # get coordinates of particle
@@ -156,19 +156,19 @@ class RainParticleSystem:
 
         # set colour of particle
         glColor3f(particle.r, particle.g, particle.b)
-         
+
         # draw particle
 
         glBegin(GL_LINES)
         glVertex3f(x, y, z)
         glVertex3f(x, y+0.04, z)
-        glEnd() 
+        glEnd()
 
         # update particle with velocity
         particle.xv += particle.xa
         particle.yv += particle.ya
         particle.zv += particle.za
-        
+
         particle.x += particle.xv
         particle.y += particle.yv
         particle.z += particle.zv
@@ -181,10 +181,10 @@ class RainParticleSystem:
 
         # update particle's life
         particle.life -= particle.ageing
-         
+
         if particle.life <= 0.0:
           self.reset_particle(particle)
-          
+
 
         glPopAttrib()
 
@@ -223,20 +223,23 @@ def main():
   panx = pany = panz = rotx = roty = rotz = colr = colg = colb = movx = movy = movz = 0
   red = green = blue = 1.0
   posx = posy = posz = 0
-  
+
   x = 0.0
   xv = 0.0
-  
+
   z = 0.0
   zv = 0.0
-  
+
   y = 0.0
   yv = 0.0
   ya = -0.04
-  
+
+  counter = 0
+  start = time.time()
+
   while 1:
     clock.tick(30)
-    
+
     for e in pygame.event.get():
       if e.type == QUIT:
         sys.exit()
@@ -293,7 +296,7 @@ def main():
           movz = 100
         elif e.key == K_SPACE:
           yv += 0.4
-          
+
         elif e.key == K_1:
           xv = -0.4
         elif e.key == K_2:
@@ -360,31 +363,31 @@ def main():
     glRotate(rz, 0, 0, 1)
     #loadImage()
     #glRotate(PI, 1, 0, 0)
-    
+
     #glRotate(-100, 1, 0, 0)
-    
+
     if y <= -10.0:
       y = -10.0
       yv *= -uniform(0.2, 0.6)
     else:
       yv += ya
     y += yv
-    
+
     x += xv
     z += zv
-    
+
     glPushMatrix()
     glTranslate(x, y, z)
-    
+
     glPushMatrix()
     glRotate(-90, 1, 0, 0)
     glCallList(obj.gl_list)
     glPopMatrix()
     smoke.render()
     glPopMatrix()
-    
+
     rain.render()
-    
+
     glColor3f(0.0, 0.8, 0.0)
     glBegin(GL_QUADS)
     glVertex3f(-400.0,-10.0,400.0)
@@ -394,6 +397,9 @@ def main():
     glEnd()
 
     pygame.display.flip()
+
+    counter += 1
+    print("FPS :", counter/(time.time()-start))
 
 if __name__ == '__main__':
   main()
