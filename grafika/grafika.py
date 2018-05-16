@@ -31,6 +31,11 @@ class Particle:
         self.xv = 0.0
         self.yv = 0.0
         self.zv = 0.0
+        
+        # acceleration
+        self.xa = 0.0
+        self.ya = 0.0
+        self.za = 0.0
 
 class SmokeParticleSystem:
  
@@ -58,7 +63,7 @@ class SmokeParticleSystem:
         particle.b = color
         
         particle.x = self.x
-        particle.y = self.y
+        particle.y = self.y + uniform(-0.05, 0.05)
         particle.z = self.z
 
         particle.xv = uniform(-0.02, 0.02)  
@@ -110,7 +115,6 @@ class RainParticleSystem:
  
     # initialise
     def __init__(self, x, y, z, offset):
-        self.active = True
         self.x = x
         self.y = y
         self.z = z
@@ -120,21 +124,24 @@ class RainParticleSystem:
           self.reset_particle(particle)
         
     def reset_particle(self, particle):
-        particle.active = True
         particle.life = 1.0
         particle.ageing = uniform(0.01, 0.04)
-        
+      
         particle.r = 0
         particle.g = 0
         particle.b = uniform(0.2, 0.5)
         
         particle.x = self.x + uniform(-self.offset, self.offset)
-        particle.y = self.y + self.offset
+        particle.y = self.y + self.offset + uniform(-0.005, 0.005)
         particle.z = self.z + uniform(-self.offset, self.offset)
 
         particle.xv = 0
-        particle.yv = uniform(-0.20, -0.40)
+        particle.yv = 0
         particle.zv = 0
+ 
+        particle.xa = 0
+        particle.ya = -0.04
+        particle.za = 0
  
     def render(self):
  
@@ -151,25 +158,33 @@ class RainParticleSystem:
         glColor3f(particle.r, particle.g, particle.b)
          
         # draw particle
-        VERTEX_POS = 0.012
 
-        glBegin(GL_TRIANGLE_STRIP)
-        glVertex3f(x+VERTEX_POS, y+VERTEX_POS, z)
-        glVertex3f(x-VERTEX_POS, y+VERTEX_POS, z)
-        glVertex3f(x+VERTEX_POS, y-VERTEX_POS, z)
-        glVertex3f(x-VERTEX_POS, y-VERTEX_POS, z)
+        glBegin(GL_LINES)
+        glVertex3f(x, y, z)
+        glVertex3f(x, y+0.04, z)
         glEnd() 
 
         # update particle with velocity
+        particle.xv += particle.xa
+        particle.yv += particle.ya
+        particle.zv += particle.za
+        
         particle.x += particle.xv
         particle.y += particle.yv
         particle.z += particle.zv
+
+        if particle.y <= -10.0:
+          particle.y = -10.0
+          particle.xv = uniform(-0.04, 0.04)
+          particle.yv *= -uniform(0.2, 0.4)
+          particle.zv = uniform(-0.04, 0.04)
 
         # update particle's life
         particle.life -= particle.ageing
          
         if particle.life <= 0.0:
           self.reset_particle(particle)
+          
 
         glPopAttrib()
 
@@ -208,6 +223,16 @@ def main():
   panx = pany = panz = rotx = roty = rotz = colr = colg = colb = movx = movy = movz = 0
   red = green = blue = 1.0
   posx = posy = posz = 0
+  
+  x = 0.0
+  xv = 0.0
+  
+  z = 0.0
+  zv = 0.0
+  
+  y = 0.0
+  yv = 0.0
+  ya = -0.04
   
   while 1:
     clock.tick(30)
@@ -267,11 +292,19 @@ def main():
         elif e.key == K_COMMA:
           movz = 100
         elif e.key == K_SPACE:
-          rx, ry, rz = 0, 0, 0
-          tx, ty, tz = 0, 0, 5
+          yv += 0.4
+          
+        elif e.key == K_1:
+          xv = -0.4
+        elif e.key == K_2:
+          zv = -0.4
+        elif e.key == K_3:
+          zv = 0.4
+        elif e.key == K_4:
+          xv = 0.4
 
       elif e.type == KEYUP:
-        panx = pany = panz = rotx = roty = rotz = colr = colg = colb = movx = movy = movz = 0
+        panx = pany = panz = rotx = roty = rotz = colr = colg = colb = movx = movy = movz = xv = zv = 0
       elif e.type == MOUSEBUTTONDOWN:
         if e.button == 1:
           rotate = True
@@ -330,19 +363,34 @@ def main():
     
     #glRotate(-100, 1, 0, 0)
     
+    if y <= -10.0:
+      y = -10.0
+      yv *= -uniform(0.2, 0.6)
+    else:
+      yv += ya
+    y += yv
+    
+    x += xv
+    z += zv
+    
+    glPushMatrix()
+    glTranslate(x, y, z)
+    
     glPushMatrix()
     glRotate(-90, 1, 0, 0)
     glCallList(obj.gl_list)
     glPopMatrix()
     smoke.render()
+    glPopMatrix()
+    
     rain.render()
     
     glColor3f(0.0, 0.8, 0.0)
     glBegin(GL_QUADS)
-    glVertex3f(-4000.0,-100,10000.0)
-    glVertex3f(4000.0,-100,10000.0)
-    glVertex3f(4000.0,80,-10000.0)
-    glVertex3f(-4000.0,80,-10000.0);
+    glVertex3f(-400.0,-10.0,400.0)
+    glVertex3f(400.0,-10.0,400.0)
+    glVertex3f(400.0,-10.0,-400.0)
+    glVertex3f(-400.0,-10.0,-400.0);
     glEnd()
 
     pygame.display.flip()
